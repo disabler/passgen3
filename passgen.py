@@ -6,7 +6,7 @@
 #                                                                             #
 #    Password Generator                                                       #
 #    Copyright (C) diSabler <dsy@dsy.name>                                    #
-#                             %(meta)s                                               #
+#                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
 #    it under the terms of the GNU General Public License as published by     #
 #    the Free Software Foundation, either version 3 of the License, or        #
@@ -157,14 +157,14 @@ WINDOWS_TITLE = 'Password Generator'
 help_text = '''<hr />
 <p><i>Generate password and copy to clipboard:</i></p>
 <p><b>%(meta)s1 ... <font color="#ff0000">Simple:</font></b> For typing by hand.</p>
-<p><b>%(meta)s2 ... <font color="#ffe900">Medium:</font></b> Contain chars, CHARS, numbers. Excluded similar by writting i, l, o, I, L, O, 1, 0.</p>
-<p><b>%(meta)s3 ... <font color="#00bd00">Strong:</font></b> Contain chars, CHARS, numbers, symbols. Excluded similar by writting i, l, o, I, L, O, 1, 0.</p>
-<p><b>%(meta)s4 ... <font color="#0a0a0a">Turn:</font></b> Turn encoding EN-RU and RU-EN</p>
+<p><b>%(meta)s2 ... <font color="#ffe900">Medium:</font></b> Contain chars, CHARS, numbers. Excluded similar by writing i, l, o, I, L, O, 1, 0.</p>
+<p><b>%(meta)s3 ... <font color="#00bd00">Strong:</font></b> Contain chars, CHARS, numbers, symbols. Excluded similar by writing i, l, o, I, L, O, 1, 0.</p>
+<p><b>%(meta)s4 ... <font color="#0a0a0a">Turn:</font></b> Turn layout EN-RU and RU-EN. Easy for remember, hard for guess.</p>
 <hr />
 <p><i>Other keys:</i></p>
-<p><b>%(meta)sI ... About me:</b> Show little infromation about me.</p>
+<p><b>%(meta)sI ... About me:</b> Show infromation about me.</p>
 <p><b>%(meta)sJ ... Help:</b> This window.</p>
-<p><b>%(meta)sQ ... Quit:</b> Exit from application.</p>
+<p><b>%(meta)sQ ... Quit:</b> Exit application.</p>
 '''
 
 about_text = '''<hr />
@@ -196,8 +196,7 @@ about_text = '''<hr />
 
 # --------------------------------------------------------------------------- #
 
-#class MainWindow(QtGui.QMainWindow):
-class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 	def __init__(self, parent=None):
 		self.clipboard = QtWidgets.QApplication.clipboard()
 		QtWidgets.QMainWindow.__init__(self, parent)
@@ -300,7 +299,6 @@ class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
 		self.textPasswd4 = Qt.QLineEdit()
 		self.textPasswd4.setStyleSheet(PASSWD_STYLE)
 		self.textPasswd4.setText('example_text_to_turn')
-		self.get_passwd_turn()
 		self.layout_main.addWidget(lbl4,3,0)
 		self.layout_main.addWidget(self.textPasswd4,3,1)
 		new_menu4 = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Update `turn` password', self)
@@ -471,6 +469,7 @@ class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
 
 if __name__ == "__main__" :
 	app = QtWidgets.QApplication(sys.argv)
+	app.setApplicationName("DesiredAppTitle")
 	main = MainWindow()
 	main.show()
 	sys.exit(app.exec_())
