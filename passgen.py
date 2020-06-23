@@ -182,11 +182,7 @@ about_text = '''<hr />
 <tr><td>telegram</td>
   <td>...</td>
   <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="http://telegram.me/disabler">@disabler</a></td></tr>
-<tr><td>paypal</td>
-  <td>...</td>
-  <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="https://www.paypal.me/dissy">dissy</a></td></tr>
+      href="http://t.me/disabler">@disabler</a></td></tr>
 </tbody></table>
 <hr />
 <i>&copy; Disabler Production Lab.</i>

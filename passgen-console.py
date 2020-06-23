@@ -60,7 +60,6 @@ written by diSabler [Andy P. Gorelow]
 mail: ..... dsy@dsy.name
 site: ..... https://dsy.name
 telegram: . https://t.me/disabler
-donate: ... https://www.paypal.me/dissy
 (c) Disabler Production Lab.
 '''
 
