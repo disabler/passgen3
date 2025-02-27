@@ -15,12 +15,16 @@ Basic features - easy way generate passwords:
 
 Required:
 - Python 3.x
-- PyQt5
+- PyQt5 for GUI version
 
-Launch @ Linux/MacOS:
+Launch GUI version @ Linux/MacOS:
 - python3 passgen.py
 - ./passgen.py
 - or make shortcut
+
+Launch console version @ Linux/MacOS:
+- python3 passgen-console.py -s|-m|-e
+- ./passgen-console.py -s|-m|-e
 
 ---
 Copyright by [diSabler](http://dsy.name) under [GPLv3](http://www.gnu.org/licenses/gpl.txt) License
