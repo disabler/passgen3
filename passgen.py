@@ -20,7 +20,8 @@
 #                                                                             #
 # --------------------------------------------------------------------------- #
 
-from PyQt5 import QtGui, QtCore, Qt, QtWidgets
+from PyQt5 import QtGui, Qt, QtWidgets
+
 import random
 import sys
 import base64
@@ -125,32 +126,32 @@ QmCC'''
 
 # --------------------------------------------------------------------------- #
 
-MIN_EASY_SIZE = 6
-MAX_EASY_SIZE = 32
+min_easy_size = 6
+max_easy_size = 32
 
-MIN_MEDIUM_SIZE = 6
-MAX_MEDIUM_SIZE = 32
+min_medium_size = 6
+max_medium_size = 32
 
-MIN_STRONG_SIZE = 6
-MAX_STRONG_SIZE = 32
-
-# --------------------------------------------------------------------------- #
-
-PASSWD_STYLE      = 'font-size: 12pt; font-family: Courier; height: 26px;'
-PASSWDLEN_STYLE   = 'font-size: 12pt; font-family: Courier; height: 26px; width: 100%;'
-EXIT_BUTTON_STYLE = 'font-size: 12pt; font-family: Courier; height: 26px;'
+min_strong_size = 6
+max_strong_size = 32
 
 # --------------------------------------------------------------------------- #
 
-SIMPLE_SHORTCUT = 'Ctrl+1'
-MEDIUM_SHORTCUT = 'Ctrl+2'
-STRONG_SHORTCUT = 'Ctrl+3'
-TURN_SHORTCUT   = 'Ctrl+4'
-HELP_SHORTCUT   = 'Ctrl+J'
-ABOUT_SHORTCUT  = 'Ctrl+I'
-EXIT_SHORTCUT   = 'Ctrl+Q'
+passwd_style      = 'font-size: 12pt; font-family: Courier; height: 26px;'
+passwdlen_style   = 'font-size: 12pt; font-family: Courier; height: 26px; width: 100%;'
+exit_button_style = 'font-size: 12pt; font-family: Courier; height: 26px;'
 
-WINDOWS_TITLE = 'Password Generator'
+# --------------------------------------------------------------------------- #
+
+simple_shortcut = 'Ctrl+1'
+medium_shortcut = 'Ctrl+2'
+strong_shortcut = 'Ctrl+3'
+turn_shortcut   = 'Ctrl+4'
+help_shortcut   = 'Ctrl+J'
+about_shortcut  = 'Ctrl+I'
+exit_shortcut   = 'Ctrl+Q'
+
+windows_title = 'Password Generator'
 
 help_text = '''<hr />
 <p><i>Generate password and copy to clipboard:</i></p>
@@ -167,26 +168,77 @@ help_text = '''<hr />
 
 about_text = '''<hr />
 <table><tbody>
-<tr><td>nick</td>
-  <td>...</td>
-  <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="http://dsy.name">diSabler</a></td></tr>
-<tr><td>name</td>
-  <td>...</td>
-  <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="http://dsy.name">Andy P. Gorelow</a></td></tr>
-<tr><td>e-mail</td>
-  <td>...</td>
-  <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="mailto:dsy@dsy.name">dsy@dsy.name</a></td></tr>
-<tr><td>telegram</td>
-  <td>...</td>
-  <td align="right"><a style="font-weight:bold;text-decoration:none;color:#333;"
-      href="http://t.me/disabler">@disabler</a></td></tr>
+<tr>
+  <td>nick</td>
+  <td align="right"><a style="font-weight:bold;"
+      href="https://dsy.name">diSabler</a></td>
+</tr>
+<tr>
+  <td>name</td>
+  <td align="right"><a style="font-weight:bold;"
+      href="https://dsy.name">Andy P. Gorelow</a></td>
+</tr>
+<tr>
+  <td>e-mail</td>
+  <td align="right"><a style="font-weight:bold;"
+      href="mailto:dsy@dsy.name">dsy@dsy.name</a></td>
+</tr>
+<tr>
+  <td>telegram</td>
+  <td align="right"><a style="font-weight:bold;"
+      href="http://t.me/disabler">@disabler</a></td>
+</tr>
 </tbody></table>
 <hr />
 <i>&copy; Disabler Production Lab.</i>
 '''
+
+# --------------------------------------------------------------------------- #
+
+def gen_chars(_from, _to, exclude = ''):
+	'''
+		Generate chars list with exclude
+	'''
+	return [chr(t) for t in range(ord(_from), ord(_to) + 1) if chr(t) not in exclude]
+
+def validate_passwd_length(current_len, min_size, max_size):
+	'''
+		Validate passwd type and length
+	'''
+
+	if current_len and current_len.isdigit():
+		current_len = int(current_len)
+	else:
+		current_len = -1
+
+	if current_len < min_size:
+		current_len = min_size
+	elif current_len > max_size:
+		current_len = max_size
+
+	return current_len
+
+def shuffle_chars(passwd):
+	'''
+		Shuffle password chars
+	'''
+
+	result = ''
+	while passwd:
+		result += passwd.pop(random.choice(range(0, len(passwd))))
+	return result
+
+def select_chars(chars, length):
+	'''
+		Select from chars list or lists
+	'''
+
+	result = []
+
+	for idx in range(0, length):
+		result.append(random.choice(chars[idx % len(chars)]))
+
+	return result
 
 # --------------------------------------------------------------------------- #
 
@@ -195,10 +247,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.clipboard = QtWidgets.QApplication.clipboard()
 		QtWidgets.QMainWindow.__init__(self, parent)
 
+		# Main window
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(app_logo))
 		self.setWindowIcon(Qt.QIcon(m_ico))
-		self.setWindowTitle(WINDOWS_TITLE)
+		self.setWindowTitle(windows_title)
 		self.resize(440, 100)
 		self.window = Qt.QWidget()
 		self.layout_main = Qt.QGridLayout()
@@ -206,130 +259,138 @@ class MainWindow(QtWidgets.QMainWindow):
 		self.layout_main.setSpacing(3)
 		self.window.setLayout(self.layout_main)
 
+		# Simple password
 		lbl1 = QtWidgets.QLabel()
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(pass_easy))
 		lbl1.setPixmap(QtGui.QPixmap(m_ico))
 		self.textPasswd1 = Qt.QLineEdit()
-		self.textPasswd1.setStyleSheet(PASSWD_STYLE)
+		self.textPasswd1.setStyleSheet(passwd_style)
 		self.textPasswd1Len = Qt.QLineEdit()
-		self.textPasswd1Len.setStyleSheet(PASSWDLEN_STYLE)
+		self.textPasswd1Len.setStyleSheet(passwdlen_style)
 		self.textPasswd1Len.setText('8')
 		self.textPasswd1Len.setFixedWidth(29)
-		self.textPasswd1Len.setValidator(Qt.QIntValidator(MIN_EASY_SIZE,MAX_EASY_SIZE))
+		self.textPasswd1Len.setValidator(Qt.QIntValidator(min_easy_size, max_easy_size))
 		self.textPasswd1Len.textChanged.connect(self.get_passwd_simple)
-		self.layout_main.addWidget(lbl1,0,0)
-		self.layout_main.addWidget(self.textPasswd1,0,1)
-		self.layout_main.addWidget(self.textPasswd1Len,0,2)
+		self.layout_main.addWidget(lbl1, 0, 0)
+		self.layout_main.addWidget(self.textPasswd1, 0, 1)
+		self.layout_main.addWidget(self.textPasswd1Len,0, 2)
 		new_menu1 = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Refresh simple password', self)
-		new_menu1.setShortcut(SIMPLE_SHORTCUT)
+		new_menu1.setShortcut(simple_shortcut)
 		new_menu1.triggered.connect(self.get_passwd_simple)
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(refresh_icon))
 		new_act1 = QtWidgets.QPushButton()
 		new_act1.setIcon(QtGui.QIcon(m_ico))
 		new_act1.setIconSize(m_ico.rect().size())
-		self.layout_main.addWidget(new_act1,0,3)
+		self.layout_main.addWidget(new_act1, 0, 3)
 		new_act1.clicked.connect(self.get_passwd_simple)
 
+		# Medium password
 		lbl2 = QtWidgets.QLabel()
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(pass_medium))
 		lbl2.setPixmap(QtGui.QPixmap(m_ico))
 		self.textPasswd2 = Qt.QLineEdit()
-		self.textPasswd2.setStyleSheet(PASSWD_STYLE)
+		self.textPasswd2.setStyleSheet(passwd_style)
 		self.textPasswd2Len = Qt.QLineEdit()
-		self.textPasswd2Len.setStyleSheet(PASSWDLEN_STYLE)
+		self.textPasswd2Len.setStyleSheet(passwdlen_style)
 		self.textPasswd2Len.setText('12')
 		self.textPasswd2Len.setFixedWidth(29)
-		self.textPasswd2Len.setValidator(Qt.QIntValidator(MIN_MEDIUM_SIZE,MAX_MEDIUM_SIZE))
+		self.textPasswd2Len.setValidator(Qt.QIntValidator(min_medium_size, max_medium_size))
 		self.textPasswd2Len.textChanged.connect(self.get_passwd_medium)
 		self.get_passwd_medium()
-		self.layout_main.addWidget(lbl2,1,0)
-		self.layout_main.addWidget(self.textPasswd2,1,1)
-		self.layout_main.addWidget(self.textPasswd2Len,1,2)
+		self.layout_main.addWidget(lbl2, 1, 0)
+		self.layout_main.addWidget(self.textPasswd2, 1, 1)
+		self.layout_main.addWidget(self.textPasswd2Len, 1, 2)
 		new_menu2 = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Refresh medium password', self)
-		new_menu2.setShortcut(MEDIUM_SHORTCUT)
+		new_menu2.setShortcut(medium_shortcut)
 		new_menu2.triggered.connect(self.get_passwd_medium)
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(refresh_icon))
 		new_act2 = QtWidgets.QPushButton()
 		new_act2.setIcon(QtGui.QIcon(m_ico))
 		new_act2.setIconSize(m_ico.rect().size())
-		self.layout_main.addWidget(new_act2,1,3)
+		self.layout_main.addWidget(new_act2, 1, 3)
 		new_act2.clicked.connect(self.get_passwd_medium)
 
+		# Strong password
 		lbl3 = QtWidgets.QLabel()
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(pass_strong))
 		lbl3.setPixmap(QtGui.QPixmap(m_ico))
 		self.textPasswd3 = Qt.QLineEdit()
-		self.textPasswd3.setStyleSheet(PASSWD_STYLE)
+		self.textPasswd3.setStyleSheet(passwd_style)
 		self.textPasswd3Len = Qt.QLineEdit()
-		self.textPasswd3Len.setStyleSheet(PASSWDLEN_STYLE)
+		self.textPasswd3Len.setStyleSheet(passwdlen_style)
 		self.textPasswd3Len.setText('24')
 		self.textPasswd3Len.setFixedWidth(29)
-		self.textPasswd3Len.setValidator(Qt.QIntValidator(MIN_STRONG_SIZE,MAX_STRONG_SIZE))
+		self.textPasswd3Len.setValidator(Qt.QIntValidator(min_strong_size, max_strong_size))
 		self.textPasswd3Len.textChanged.connect(self.get_passwd_strong)
 		self.get_passwd_strong()
-		self.layout_main.addWidget(lbl3,2,0)
-		self.layout_main.addWidget(self.textPasswd3,2,1)
-		self.layout_main.addWidget(self.textPasswd3Len,2,2)
+		self.layout_main.addWidget(lbl3, 2, 0)
+		self.layout_main.addWidget(self.textPasswd3, 2, 1)
+		self.layout_main.addWidget(self.textPasswd3Len, 2, 2)
 		new_menu3 = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Refresh strong password', self)
-		new_menu3.setShortcut(STRONG_SHORTCUT)
+		new_menu3.setShortcut(strong_shortcut)
 		new_menu3.triggered.connect(self.get_passwd_strong)
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(refresh_icon))
 		new_act3 = QtWidgets.QPushButton()
 		new_act3.setIcon(QtGui.QIcon(m_ico))
 		new_act3.setIconSize(m_ico.rect().size())
-		self.layout_main.addWidget(new_act3,2,3)
+		self.layout_main.addWidget(new_act3, 2, 3)
 		new_act3.clicked.connect(self.get_passwd_strong)
 
+		# Turn password
 		lbl4 = QtWidgets.QLabel()
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(refresh_icon))
 		lbl4.setPixmap(QtGui.QPixmap(m_ico))
 		self.textPasswd4 = Qt.QLineEdit()
-		self.textPasswd4.setStyleSheet(PASSWD_STYLE)
+		self.textPasswd4.setStyleSheet(passwd_style)
 		self.textPasswd4.setText('example_text_to_turn')
-		self.layout_main.addWidget(lbl4,3,0)
-		self.layout_main.addWidget(self.textPasswd4,3,1)
+		self.layout_main.addWidget(lbl4, 3, 0)
+		self.layout_main.addWidget(self.textPasswd4, 3, 1)
 		new_menu4 = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Update `turn` password', self)
-		new_menu4.setShortcut(TURN_SHORTCUT)
+		new_menu4.setShortcut(turn_shortcut)
 		new_menu4.triggered.connect(self.get_passwd_turn)
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(refresh_icon))
 		new_act4 = QtWidgets.QPushButton()
 		new_act4.setIcon(QtGui.QIcon(m_ico))
 		new_act4.setIconSize(m_ico.rect().size())
-		self.layout_main.addWidget(new_act4,3,3)
+		self.layout_main.addWidget(new_act4, 3, 3)
 		new_act4.clicked.connect(self.get_passwd_turn)
 
+		# Quit button
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(exit_icon))
 		quit_act = QtWidgets.QPushButton()
 		quit_act.setIcon(QtGui.QIcon(m_ico))
 		quit_act.setIconSize(m_ico.rect().size())
-		quit_act.setStyleSheet(EXIT_BUTTON_STYLE)
+		quit_act.setStyleSheet(exit_button_style)
 		self.layout_main.addWidget(quit_act,4,0,1,4)
 		quit_act.clicked.connect(self.close)
 		exit_menu = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Quit', self)
-		exit_menu.setShortcut(EXIT_SHORTCUT)
+		exit_menu.setShortcut(exit_shortcut)
 		exit_menu.triggered.connect(self.close)
 
+		# Help shortcut
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(info_icon))
 		help_menu = QtWidgets.QAction(QtGui.QIcon(m_ico), 'Help', self)
-		help_menu.setShortcut(HELP_SHORTCUT)
+		help_menu.setShortcut(help_shortcut)
 		help_menu.triggered.connect(self.help_info)
 
+		# About me shortcut
 		m_ico = QtGui.QPixmap()
 		m_ico.loadFromData(base64.b64decode(about_icon))
 		about_menu = QtWidgets.QAction(QtGui.QIcon(m_ico), 'About me', self)
-		about_menu.setShortcut(ABOUT_SHORTCUT)
+		about_menu.setShortcut(about_shortcut)
 		about_menu.triggered.connect(self.about_info)
 
+		# Menu bar
 		self.setCentralWidget(self.window)
 
 		self.get_passwd_simple()
@@ -349,8 +410,11 @@ class MainWindow(QtWidgets.QMainWindow):
 		menu_h.addAction(about_menu)
 
 	def show_box(self, title, body, icon):
+		'''
+			Show window box
+		'''
 		msgBox = QtWidgets.QMessageBox()
-		msgBox.setWindowTitle(WINDOWS_TITLE)
+		msgBox.setWindowTitle(windows_title)
 		msgBox.setText('<h2><strong>%s</strong></h2>' % title)
 		msgBox.setInformativeText(body)
 		msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
@@ -364,106 +428,114 @@ class MainWindow(QtWidgets.QMainWindow):
 		msgBox.exec_()
 
 	def help_info(self):
-		self.show_box('Help', help_text % self.getMetaSymbol(), info_icon)
+		'''
+			Show help
+		'''
+		self.show_box('Help', help_text % self.get_meta_symbol(), info_icon)
 
 	def about_info(self):
+		'''
+			Show about me
+		'''
 		self.show_box('About me', about_text, about_icon)
 
 	def get_passwd_simple(self):
-		L1 = ['a','e','i','o','u']
-		L2 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in L1]
-		PASS = ''
-		T = self.textPasswd1Len.text()
-		if T: LEN = int(T)
-		else: return
-		if LEN < MIN_EASY_SIZE: return
-		BEG = random.randint(0,1)
+		'''
+			Simple password
+		'''
 
-		for t in range(0,LEN):
-			if t % 2 == BEG:
-				LIT = random.choice(L2)
-				if LEN <= 20:
-					L2.remove(LIT)
+		length = validate_passwd_length(self.textPasswd1Len.text(), min_easy_size, max_easy_size)
+
+		chars1 = list('aeiou')
+		chars2 = gen_chars('a', 'z', chars1)
+
+		result = ''
+		begin = random.randint(0,1)
+
+		for idx in range(0, length):
+			if idx % 2 == begin:
+				char = random.choice(chars2)
+				if length <= 20:
+					chars2.remove(char)
 			else:
-				LIT = random.choice(L1)
-				if LEN <= 10:
-					L1.remove(LIT)
-			PASS += LIT
+				char = random.choice(chars1)
+				if length <= 10:
+					chars1.remove(char)
+			result += char
 
-		self.clipboard.setText(PASS)
-		self.textPasswd1.setText(PASS)
+		self.clipboard.setText(result)
+		self.textPasswd1.setText(result)
 
 	def get_passwd_medium(self):
-		RND1 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in 'ilo']
-		RND2 = [chr(t) for t in range(ord('A'),ord('Z')+1) if chr(t) not in 'ILO']
-		RND3 = [chr(t) for t in range(ord('2'),ord('9')+1)]
+		'''
+			Medium password
+		'''
 
-		T = self.textPasswd2Len.text()
-		if T: LEN = int(T)
-		else: return
-		if LEN < MIN_MEDIUM_SIZE: return
+		length = validate_passwd_length(self.textPasswd2Len.text(), min_medium_size, max_medium_size)
 
-		RND_T = [RND1,RND2,RND3]
-		IDX = 0
-		PRE = []
+		chars = [
+			gen_chars('a', 'z', 'ilo'),
+			gen_chars('A', 'Z', 'ILO'),
+			gen_chars('2', '9'),
+		]
 
-		for t in range(0,LEN):
-			PRE += [random.choice(RND_T[IDX])]
-			IDX += 1
-			if IDX >= len(RND_T): IDX = 0
-		REZ = ''
-		while PRE:
-			REZ += PRE.pop(random.choice(range(0,len(PRE))))
+		result = select_chars(chars, length)
+		result = shuffle_chars(result)
 
-		self.clipboard.setText(REZ)
-		self.textPasswd2.setText(REZ)
+		self.clipboard.setText(result)
+		self.textPasswd2.setText(result)
 
 	def get_passwd_strong(self):
-		RND1 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in 'ilo']
-		RND2 = [chr(t) for t in range(ord('A'),ord('Z')+1) if chr(t) not in 'ILO']
-		RND3 = [chr(t) for t in range(ord('2'),ord('9')+1)]
-		RND4 = list('!@$%^&*')
+		'''
+			Strong password
+		'''
 
-		T = self.textPasswd3Len.text()
-		if T: LEN = int(T)
-		else: return
-		if LEN < MIN_STRONG_SIZE: return
+		length = validate_passwd_length(self.textPasswd3Len.text(), min_strong_size, max_strong_size)
 
-		RND_T = [RND1,RND2,RND3,RND4]
-		IDX = 0
-		PRE = []
+		chars = [
+			gen_chars('a', 'z', 'ilo'),
+			gen_chars('A', 'Z', 'ILO'),
+			gen_chars('2', '9'),
+			list('!@$%^&*'),
+		]
 
-		for t in range(0,LEN):
-			PRE += [random.choice(RND_T[IDX])]
-			IDX += 1
-			if IDX >= len(RND_T): IDX = 0
-		REZ = ''
-		while PRE:
-			REZ += PRE.pop(random.choice(range(0,len(PRE))))
+		result = select_chars(chars, length)
+		result = shuffle_chars(result)
 
-		self.clipboard.setText(REZ)
-		self.textPasswd3.setText(REZ)
+		self.clipboard.setText(result)
+		self.textPasswd3.setText(result)
 
 	def get_passwd_turn(self):
-		T1 = '''`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'''
-		T2 = '''ё1234567890-=йцукенгшщзхъ\фывапролджэячсмитьбю.Ё!"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,'''
-		TURN1 = T1 + T2
-		TURN2 = T2 + T1
-		TEXT = str(self.textPasswd4.text())
-		REZ = ''.join([TURN1[TURN2.find(x)] if x in TURN2 else x for x in TEXT])
+		'''
+			Turn password EN-RU and RU-EN
+		'''
 
-		self.clipboard.setText(REZ)
-		self.textPasswd4.setText(REZ)
+		chars1 = '''`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'''
+		chars2 = '''ё1234567890-=йцукенгшщзхъ\фывапролджэячсмитьбю.Ё!"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,'''
 
-	def getMetaSymbol(self):
+		turn1 = chars1 + chars2
+		turn2 = chars2 + chars1
+
+		source = str(self.textPasswd4.text())
+		result = ''.join([turn1[turn2.find(x)] if x in turn2 else x for x in source])
+
+		self.clipboard.setText(result)
+		self.textPasswd4.setText(result)
+
+	def get_meta_symbol(self):
+		'''
+			Choice metasymbol for MacOS and other
+		'''
 		if sys.platform == 'darwin':
-			return {'meta':'⌘'}
+			return { 'meta' : '⌘' }
 		else:
-			return {'meta':'^'}
+			return { 'meta' : '^' }
 
-if __name__ == "__main__" :
+# --------------------------------------------------------------------------- #
+
+if __name__ == '__main__' :
 	app = QtWidgets.QApplication(sys.argv)
-	app.setApplicationName("DesiredAppTitle")
+	app.setApplicationName(windows_title)
 	main = MainWindow()
 	main.show()
 	sys.exit(app.exec_())

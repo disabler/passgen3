@@ -25,17 +25,20 @@ import sys
 
 # --------------------------------------------------------------------------- #
 
-MIN_EASY_SIZE = 6
-MAX_EASY_SIZE = 32
-DEFAULT_EASY_SIZE = 8
+# Easy password settings
+default_easy_size = 8
+min_easy_size     = 6
+max_easy_size     = 32
 
-MIN_MEDIUM_SIZE = 6
-MAX_MEDIUM_SIZE = 32
-DEFAULT_MEDIUM_SIZE = 8
+# Medium password settings
+default_medium_size = 8
+min_medium_size     = 6
+max_medium_size     = 32
 
-MIN_STRONG_SIZE = 6
-MAX_STRONG_SIZE = 32
-DEFAULT_STRONG_SIZE = 12
+# Strong password settings
+default_strong_size = 12
+min_strong_size     = 6
+max_strong_size     = 32
 
 # --------------------------------------------------------------------------- #
 
@@ -65,117 +68,155 @@ telegram: . https://t.me/disabler
 
 # --------------------------------------------------------------------------- #
 
-def get_passwd_simple(LEN):
-	if LEN and LEN.isdigit():
-		LEN = int(LEN)
-	else:
-		LEN = DEFAULT_EASY_SIZE
-	L1 = ['a','e','i','o','u']
-	L2 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in L1]
-	PASS = ''
-	if LEN < MIN_EASY_SIZE:
-		LEN = MIN_EASY_SIZE
-	elif LEN > MAX_EASY_SIZE:
-		LEN = MAX_EASY_SIZE
-	BEG = random.randint(0,1)
+def validate_passwd_length(current_len, default, min_size, max_size):
+	'''
+		Validate passwd type and length
+	'''
 
-	for t in range(0,LEN):
-		if t % 2 == BEG:
-			LIT = random.choice(L2)
-			if LEN <= 20:
-				L2.remove(LIT)
+	if current_len and current_len.isdigit():
+		current_len = int(current_len)
+	else:
+		current_len = default
+
+	if current_len < min_size:
+		current_len = min_size
+	elif current_len > max_size:
+		current_len = max_size
+
+	return current_len
+
+def shuffle_chars(passwd):
+	'''
+		Shuffle password chars
+	'''
+
+	result = ''
+	while passwd:
+		result += passwd.pop(random.choice(range(0, len(passwd))))
+	return result
+
+def select_chars(chars, length):
+	'''
+		Select from chars list or lists
+	'''
+
+	result = []
+
+	for idx in range(0, length):
+		result.append(random.choice(chars[idx % len(chars)]))
+
+	return result
+
+def gen_chars(_from, _to, exclude = ''):
+	'''
+		Generate chars list with exclude
+	'''
+	return [chr(t) for t in range(ord(_from), ord(_to) + 1) if chr(t) not in exclude]
+
+def get_passwd_simple(length):
+	'''
+		Simple password
+	'''
+
+	length = validate_passwd_length(length, default_easy_size, min_easy_size, max_easy_size)
+
+	chars1 = list('aeiou')
+	chars2 = gen_chars('a', 'z', chars1)
+
+	result = ''
+	begin = random.randint(0,1)
+
+	for idx in range(0, length):
+		if idx % 2 == begin:
+			char = random.choice(chars2)
+			if length <= 20:
+				chars2.remove(char)
 		else:
-			LIT = random.choice(L1)
-			if LEN <= 10:
-				L1.remove(LIT)
-		PASS += LIT
-	return PASS
+			char = random.choice(chars1)
+			if length <= 10:
+				chars1.remove(char)
+		result += char
 
-def get_passwd_medium(LEN):
-	if LEN and LEN.isdigit():
-		LEN = int(LEN)
-	else:
-		LEN = DEFAULT_MEDIUM_SIZE
-	RND1 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in 'ilo']
-	RND2 = [chr(t) for t in range(ord('A'),ord('Z')+1) if chr(t) not in 'ILO']
-	RND3 = [chr(t) for t in range(ord('2'),ord('9')+1)]
+	return result
 
-	if LEN < MIN_MEDIUM_SIZE:
-		LEN = MIN_MEDIUM_SIZE
-	elif LEN > MAX_MEDIUM_SIZE:
-		LEN = MAX_MEDIUM_SIZE
+def get_passwd_medium(length):
+	'''
+		Medium password
+	'''
 
-	RND_T = [RND1,RND2,RND3]
-	IDX = 0
-	PRE = []
+	length = validate_passwd_length(length, default_medium_size, min_medium_size, max_medium_size)
 
-	for t in range(0,LEN):
-		PRE += [random.choice(RND_T[IDX])]
-		IDX += 1
-		if IDX >= len(RND_T): IDX = 0
-	REZ = ''
-	while PRE:
-		REZ += PRE.pop(random.choice(range(0,len(PRE))))
-	return REZ
+	chars = [
+		gen_chars('a', 'z', 'ilo'),
+		gen_chars('A', 'Z', 'ILO'),
+		gen_chars('2', '9'),
+	]
 
-def get_passwd_strong(LEN):
-	if LEN and LEN.isdigit():
-		LEN = int(LEN)
-	else:
-		LEN = DEFAULT_STRONG_SIZE
-	RND1 = [chr(t) for t in range(ord('a'),ord('z')+1) if chr(t) not in 'ilo']
-	RND2 = [chr(t) for t in range(ord('A'),ord('Z')+1) if chr(t) not in 'ILO']
-	RND3 = [chr(t) for t in range(ord('2'),ord('9')+1)]
-	RND4 = list('!@$%^&*')
+	result = select_chars(chars, length)
 
-	if LEN < MIN_STRONG_SIZE:
-		LEN = MIN_STRONG_SIZE
-	elif LEN > MAX_STRONG_SIZE:
-		LEN = MAX_STRONG_SIZE
+	return shuffle_chars(result)
 
-	RND_T = [RND1,RND2,RND3,RND4]
-	IDX = 0
-	PRE = []
+def get_passwd_strong(length):
+	'''
+		Strong password
+	'''
 
-	for t in range(0,LEN):
-		PRE += [random.choice(RND_T[IDX])]
-		IDX += 1
-		if IDX >= len(RND_T): IDX = 0
-	REZ = ''
-	while PRE:
-		REZ += PRE.pop(random.choice(range(0,len(PRE))))
-	return REZ
+	length = validate_passwd_length(length, default_strong_size, min_strong_size, max_strong_size)
 
-def get_passwd_turn(TEXT):
-	T1 = '''`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'''
-	T2 = '''ё1234567890-=йцукенгшщзхъ\фывапролджэячсмитьбю.Ё!"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,'''
-	TURN1 = T1 + T2
-	TURN2 = T2 + T1
-	REZ = ''.join([TURN1[TURN2.find(x)] if x in TURN2 else x for x in TEXT])
-	return '%s = %s' % (TEXT, REZ)
+	chars = [
+		gen_chars('a', 'z', 'ilo'),
+		gen_chars('A', 'Z', 'ILO'),
+		gen_chars('2', '9'),
+		list('!@$%^&*'),
+	]
 
-def usage(_):
+	result = select_chars(chars, length)
+
+	return shuffle_chars(result)
+
+def get_passwd_turn(source):
+	'''
+		Turn password EN-RU and RU-EN
+	'''
+
+	chars1 = '''`1234567890-=qwertyuiop[]\\asdfghjkl;'zxcvbnm,./~!@#$%^&*()_+QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?'''
+	chars2 = '''ё1234567890-=йцукенгшщзхъ\фывапролджэячсмитьбю.Ё!"№;%:?*()_+ЙЦУКЕНГШЩЗХЪ/ФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,'''
+
+	turn1 = chars1 + chars2
+	turn2 = chars2 + chars1
+
+	result = ''.join([turn1[turn2.find(x)] if x in turn2 else x for x in source])
+
+	return f'{source} = {result}'
+
+def usage():
+	'''
+		Show usage
+	'''
 	return USAGE
 
-def about(_):
+def about():
+	'''
+		Show about me
+	'''
 	return ABOUT
 
 # --------------------------------------------------------------------------- #
 
 OPTS =	{
-		'-e':		[get_passwd_simple, 1],
-		'--easy':	[get_passwd_simple, 1],
-		'-m':		[get_passwd_medium, 1],
-		'--medium':	[get_passwd_medium, 1],
-		'-s':		[get_passwd_strong, 1],
-		'--strong':	[get_passwd_strong, 1],
-		'-t':		[get_passwd_turn, 1],
-		'--turn':	[get_passwd_turn, 1],
-		'-h':		[usage, 0],
-		'--help':	[usage, 0],
-		'-a':		[about, 0],
-		'--about':	[about, 0]
-		}
+	'-e':		[get_passwd_simple, 1],
+	'--easy':	[get_passwd_simple, 1],
+	'-m':		[get_passwd_medium, 1],
+	'--medium':	[get_passwd_medium, 1],
+	'-s':		[get_passwd_strong, 1],
+	'--strong':	[get_passwd_strong, 1],
+	'-t':		[get_passwd_turn, 1],
+	'--turn':	[get_passwd_turn, 1],
+	'-h':		[usage, 0],
+	'--help':	[usage, 0],
+	'-a':		[about, 0],
+	'--about':	[about, 0]
+}
 
 args = sys.argv[1:]
 
@@ -184,14 +225,13 @@ for idx in range(0, len(args)):
 	if args[idx] in OPTS:
 		cmd, cmd_len = OPTS[args[idx]]
 		if cmd_len and idx + 1 < len(args):
-			param = args[idx + 1]
+			print(cmd(args[idx + 1]))
 		else:
-			param = ''
-		print(cmd(param))
+			print(cmd())
 	else:
 		match -= 1
 
 if not match:
-	print(usage(''))
+	print(usage())
 
 # --- The end is near! ------------------------------------------------------ #
