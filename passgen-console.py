@@ -42,7 +42,7 @@ max_strong_size     = 32
 
 # --------------------------------------------------------------------------- #
 
-USAGE = '''
+usage = '''
 Generate password:
 -e, --easy ... For typing by hand.
 -m, --medium . Contain chars, CHARS, numbers. Excluded similar by writing i, l, o, I, L, O, 1, 0.
@@ -58,7 +58,7 @@ Example:
 passgen --easy 10 -e 14 --medium --strong
 '''
 
-ABOUT = '''
+about = '''
 written by diSabler [Andy P. Gorelow]
 mail: ..... dsy@dsy.name
 site: ..... https://dsy.name
@@ -193,13 +193,13 @@ def usage():
 	'''
 		Show usage
 	'''
-	return USAGE
+	return usage
 
 def about():
 	'''
 		Show about me
 	'''
-	return ABOUT
+	return about
 
 # --------------------------------------------------------------------------- #
 
